@@ -103,6 +103,22 @@ class AutoBidService
     @current_offer = @offers.find{ |o| o[:id] == @current_offer_id}
   end
 
+  def scenario_six
+    @offers = [
+        {id: 1, price: 9, min_price: 4, delivery_quantity: 4000, status: "inside_contigent", user_updated_at: DateTime.now},
+        {id: 2, price: 9, min_price: 6, delivery_quantity: 4000, status: "inside_contigent", user_updated_at: (DateTime.now + 3.minutes)},
+        {id: 3, price: 9, min_price: 9, delivery_quantity: 4000, status: "outside_contigent", user_updated_at: (DateTime.now + 5.minutes)},
+        {id: 4, price: 8, min_price: 3, delivery_quantity: 1950, status: "inside_contigent", user_updated_at: (DateTime.now + 7.minutes)},
+        {id: 5, price: 8, min_price: 2, delivery_quantity: 50, status: "inside_contigent", user_updated_at: (DateTime.now + 8.minutes)},
+        {id: 6, price: 8, min_price: 5, delivery_quantity: 2000, status: "outside_contigent", user_updated_at: (DateTime.now + 9.minutes)}
+        ]
+    @step = 1
+    @capacity = 10000
+    @start_price = 50.0
+    @current_offer_id = 6
+    @current_offer = @offers.find{ |o| o[:id] == @current_offer_id}
+  end
+
   def print
     @offers.sort_by{|o| o[:user_updated_at]}.sort_by{|o| o[:status]}.sort_by{|o| o[:price]}.each do |o|
       p "id: #{o[:id]}, price: #{o[:price].to_s}, min_price: #{o[:min_price]}, delivery_quantity: #{o[:delivery_quantity]}, status: #{o[:status]}, user_updated_at: #{o[:user_updated_at].strftime("%-d.%-m.%Y %-l:%M%p")}"  
@@ -155,18 +171,20 @@ class AutoBidService
               if o[:min_price] <= current_offer[:min_price]
                 o[:price] = current_offer[:min_price]
               else
-                p "we should be kicked_out (outside contigent)"
+                p "we should be kicked_out (outside contigent) one"
               end
             end
           end
+        # there is nobody with same price 
         else
+          # can we compete
           if lowest_min_price?(current_offer[:id]) <= current_offer[:min_price]
-            current_offer[:price] = current_offer[:min_price]
+            current_offer[:price] = current_offer[:min_price] 
             @offers.select{|o| o[:id] != current_offer[:id] && o[:status] == "inside_contigent"}.each do |o|
               if o[:min_price] <= current_offer[:min_price]
-                o[:price] = current_offer[:min_price] - @step
+                o[:price] = current_offer[:min_price]# - @step
               else
-                p "we should be kicked_out (outside contigent)"
+                o[:price] = o[:min_price]
               end
             end
           elsif lowest_min_price?(current_offer[:id]) > current_offer[:min_price]
@@ -193,7 +211,7 @@ class AutoBidService
   end
 
   def lowest_min_price?(current_offer_id)
-    @offers.select{|o| o[:id] != current_offer_id && o[:status] == "inside_contigent"}.sort_by{|o| -o[:min_price]}.first[:min_price]
+    @offers.select{|o| o[:id] != current_offer_id && o[:status] == "inside_contigent"}.sort_by{|o| o[:min_price]}.first[:min_price]
   end
 
   def offer_can_fit?(delivery_quantity, current_offer_id)
@@ -201,7 +219,12 @@ class AutoBidService
   end
 
   def get_my_price(current_offer_id)
-    @offers.select{|o| o[:id] != current_offer_id && o[:status] == "inside_contigent"}.sort_by{|o| o[:price]}.first[:price] - @step
+    min_price = @offers.select{|o| o[:id] != current_offer_id && o[:status] == "outside_contigent"}.sort_by{|o| o[:price]}
+    if min_price.blank?
+      @offers.select{|o| o[:id] != current_offer_id && o[:status] == "inside_contigent"}.sort_by{|o| o[:price]}.first[:price] - @step    
+    else
+      min_price.first[:price]   
+    end
   end
 
   def ranking
@@ -235,11 +258,13 @@ end
 
 #@s.scenario_four
 
-@s.scenario_five
+#@s.scenario_five
+
+#@s.scenario_six
 
 @s.autobid
 @s.ranking
-#@s.set_inside_to_maximum
+
 
 
 @s.print
