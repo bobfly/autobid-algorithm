@@ -124,25 +124,7 @@ class AutoBidService
       p "id: #{o[:id]}, price: #{o[:price].to_s}, min_price: #{o[:min_price]}, delivery_quantity: #{o[:delivery_quantity]}, status: #{o[:status]}, user_updated_at: #{o[:user_updated_at].strftime("%-d.%-m.%Y %-l:%M%p")}"  
     end
   end
-
-  def check_capacity
-    @offered_capacity = @offers.select{|o| o[:id] != @current_offer[:id] && o[:status] == "inside_contigent"}.map{|o| o[:delivery_quantity]}.sum
-  end
-
-  def get_lowest_offer
-    @lowest_offer = @offers.select{|o| o[:id] != @current_offer[:id]}.sort_by{|o| o[:min_price]}.first
-  end
-
-  def can_underbid(offer, bid_to_underbid)
-    if not bid_to_underbid
-      false
-    else
-      offer[:price] > offer[:min_price] && offer[:min_price] < bid_to_underbid[:price] && bid_to_underbid[:price] - @step >= offer[:min_price]
-    end
-  end
-
-
-
+  
   def autobid
     current_offer = @current_offer
     @offers = @offers.sort_by{|o| o[:user_updated_at]}
@@ -260,7 +242,7 @@ end
 
 #@s.scenario_five
 
-#@s.scenario_six
+@s.scenario_six
 
 @s.autobid
 @s.ranking
