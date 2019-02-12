@@ -132,8 +132,12 @@ class AutoBidService
     @offers.select{|o| o[:id] != best_offer[:id]}.each do |o|
       o[:price] -= @step
     end
-    # 3. ako je nova cijena iznad minimalne onda je ponudi 
+    # 3. ako je nova cijena iznad minimalne onda je ponudi (is_offer_competable)
     # i postavi neki flag da je napravljena ponuda    
+  end
+
+  def is_offer_competable(offer_price, best_offer_price)
+    offer_price >= best_offer_price
   end
 
   def ranking
