@@ -56,7 +56,7 @@ class AutoBidService
   end
 
   # scenario 3
-  # offer 1,2 are winners with price 8
+  # offer 1,2 are winners with price 9, offer 3 has price 9 but it's outside contigent
   # PASS
   def scenario_three
     @offers = [
@@ -72,7 +72,9 @@ class AutoBidService
   end
 
   # scenario four
-  # offers 1,2,4 are winners with price 9
+  # offers 1,2 are winners with price 9, 
+  # offer 4 has price 8 (also winner), 
+  # and offer 3 has price 9 (outside_contigent)
   #
   def scenario_four
     @offers = [
@@ -88,6 +90,10 @@ class AutoBidService
     @current_offer = @offers.find{ |o| o[:id] == @current_offer_id}
   end
 
+  # scenario five
+  # offer 4,5 have price 8 and they are winners along with
+  # offers 1,2 with price 9
+  # offer 3 has lost with price 9
   def scenario_five
     @offers = [
         {id: 1, price: 9, min_price: 4, delivery_quantity: 4000, status: "inside_contigent", user_updated_at: DateTime.now},
@@ -103,6 +109,14 @@ class AutoBidService
     @current_offer = @offers.find{ |o| o[:id] == @current_offer_id}
   end
 
+  # winners
+  #   offer 6 qty: 2000, Price 5 , min_price: 5
+  #   offer 4 qty: 1950, price: 5, min_price: 3,  
+  #   offer 5 qty: 50, price: 5, min_price: 2,  
+  #   offer 1 qty: 4000, price: 6, min_price: 4,  
+  # losers
+  #   offer 2 qty: 4000, price: 6, min_price: 6,  
+  #   offer 3 qty: 4000, price: 9, min_price: 9,
   def scenario_six
     @offers = [
         {id: 1, price: 9, min_price: 4, delivery_quantity: 4000, status: "inside_contigent", user_updated_at: DateTime.now},
