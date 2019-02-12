@@ -141,12 +141,14 @@ class AutoBidService
 
   def autobid
     # autobid quick concept
-    # sort offers and then reverse them to start from the last one
+    # sort offers and then reverse them to start from the worst one
     # @step should be accesible in this method, maybe to use initialize method!?
-    @offers.print.reverse.each do |so|
-      if so[:min_price] < so[:price] - @step
+    @offers.sort_by!{|o| o[:price]}.sort_by{|o| o[:delivery_quantity]}.sort_by{|o| o[:user_updated_at]}
+
+    @offers.reverse.each_with_index do |so,index|
+      return @offers if index == @offers.size - 1 # don't improve the best ranking offer and return array
+      if so[:min_price] <= so[:price] - @step
         so[:price] = so[:price] - @step
-        @offers = @offers.print
         autobid
       end
     end
