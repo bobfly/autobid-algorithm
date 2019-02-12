@@ -126,7 +126,14 @@ class AutoBidService
   end
   
   def autobid
-    
+    # 1. uzmeš sve ponude osim najbolje (kriterij min_price)
+    best_offer = @offer.sort_by{|o| o[:min_price]}.first
+    # 2. svaku od tih ponuda smanji za step
+    @offers.select{|o| o[:id] != best_offer[:id]}.each do |o|
+      o[:price] -= @step
+    end
+    # 3. ako je nova cijena iznad minimalne onda je ponudi 
+    # i postavi neki flag da je napravljena ponuda    
   end
 
   def ranking
