@@ -127,7 +127,7 @@ class AutoBidService
   
   def autobid
     # 1. uzmeš sve ponude osim najbolje (kriterij min_price)
-    best_offer = @offer.sort_by{|o| o[:min_price]}.first
+    best_offer = @offers.sort_by{|o| o[:min_price]}.first
     # 2. svaku od tih ponuda smanji za step
     @offers.select{|o| o[:id] != best_offer[:id]}.each do |o|
       o[:price] -= @step
