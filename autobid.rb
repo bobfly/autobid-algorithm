@@ -134,7 +134,7 @@ class AutoBidService
   end
 
   def print
-    @offers.sort_by{|o| o[:user_updated_at]}.sort_by{|o| o[:status]}.sort_by{|o| o[:price]}.each do |o|
+    @offers.sort_by{|o| o[:price]}.sort_by{|o| o[:delivery_quantity]}.sort_by{|o| o[:user_updated_at]}.sort_by{|o| o[:status]}.each do |o|
       p "id: #{o[:id]}, price: #{o[:price].to_s}, min_price: #{o[:min_price]}, delivery_quantity: #{o[:delivery_quantity]}, status: #{o[:status]}, user_updated_at: #{o[:user_updated_at].strftime("%-d.%-m.%Y %-l:%M%p")}"  
     end
   end
@@ -155,7 +155,7 @@ class AutoBidService
   end
 
   def ranking
-    @offers = @offers.sort_by{|o| o[:price]}
+    @offers = @offers.sort_by{|o| o[:price]}.sort_by{|o| o[:delivery_quantity]}.sort_by{|o| o[:user_updated_at]}
     kwh_sum = 0
     inside_contingent = []
     outside_contingent = []
