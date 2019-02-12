@@ -126,87 +126,7 @@ class AutoBidService
   end
   
   def autobid
-    current_offer = @current_offer
-    @offers = @offers.sort_by{|o| o[:user_updated_at]}
-    # get all placed offers and divide them into groups
-    inside_contigent = @offers.select{|o| o[:status] == "inside_contigent"}
-    outside_contigent = @offers.select{|o| o[:status] == "outside_contigent"}
-    kwh_sum = 0
-    has_inside_contingent = inside_contigent.size > 0
-    has_outside_contingent = outside_contigent.size > 0
-
-    unless has_outside_contingent
-      # if there are no bids stop
-      return #break
-    else
-      # what is current state of capacity and delivery
-      kwh_sum = inside_contigent.map{|o| o[:delivery_quantity]}.sum
-      if kwh_sum + current_offer[:delivery_quantity] > @capacity
-        # is there an offer that have same capacity
-        if offer_with_same_quantity?(current_offer[:id], current_offer[:delivery_quantity])
-          # can I compeet them with price?
-          # if not set my minimum price
-          if lowest_min_price?(current_offer[:id]) <= current_offer[:min_price] 
-            current_offer[:price] = current_offer[:min_price]
-            @offers.select{|o| o[:id] != current_offer[:id] && o[:status] == "inside_contigent"}.each do |o|
-              # if offer inside_contigent can handle min_price of current_offer set them
-              if o[:min_price] <= current_offer[:min_price]
-                o[:price] = current_offer[:min_price]
-              else
-                p "we should be kicked_out (outside contigent) one"
-              end
-            end
-          end
-        # there is nobody with same price 
-        else
-          # can we compete
-          if lowest_min_price?(current_offer[:id]) <= current_offer[:min_price]
-            current_offer[:price] = current_offer[:min_price] 
-            @offers.select{|o| o[:id] != current_offer[:id] && o[:status] == "inside_contigent"}.each do |o|
-              if o[:min_price] <= current_offer[:min_price]
-                o[:price] = current_offer[:min_price]# - @step
-              else
-                o[:price] = o[:min_price]
-              end
-            end
-          elsif lowest_min_price?(current_offer[:id]) > current_offer[:min_price]
-            @offers.select{|o| o[:id] != current_offer[:id] && o[:status] == "inside_contigent" && o[:min_price] > current_offer[:min_price]}.each do |o|
-              o[:price] = o[:min_price]
-            end
-            current_offer[:price] = get_my_price(current_offer[:id])
-          end
-        end
-      else
-        if offer_can_fit?(current_offer[:delivery_quantity], current_offer[:id])
-          # highest offer inside contigent - step
-          current_offer[:price] = get_my_price(current_offer[:id])
-        else
-          p "compeet with everyone inside_contigent"
-        end
-      end
-      
-    end
-  end
-
-  def offer_with_same_quantity?(current_offer_id, quantity)
-    @offers.select{|o| o[:id] != current_offer_id && o[:status] == "inside_contigent" && o[:delivery_quantity] == quantity}.size > 0
-  end
-
-  def lowest_min_price?(current_offer_id)
-    @offers.select{|o| o[:id] != current_offer_id && o[:status] == "inside_contigent"}.sort_by{|o| o[:min_price]}.first[:min_price]
-  end
-
-  def offer_can_fit?(delivery_quantity, current_offer_id)
-    (@offers.select{|o| o[:id] != current_offer_id && o[:status] == "inside_contigent"}.map{|o| o[:delivery_quantity]}.sum + delivery_quantity) <= @capacity
-  end
-
-  def get_my_price(current_offer_id)
-    min_price = @offers.select{|o| o[:id] != current_offer_id && o[:status] == "outside_contigent"}.sort_by{|o| o[:price]}
-    if min_price.blank?
-      @offers.select{|o| o[:id] != current_offer_id && o[:status] == "inside_contigent"}.sort_by{|o| o[:price]}.first[:price] - @step    
-    else
-      min_price.first[:price]   
-    end
+    
   end
 
   def ranking
@@ -232,7 +152,7 @@ end
 
 @s = AutoBidService.new
 
-#@s.scenario_one
+@s.scenario_one
 
 #@s.scenario_two
 
@@ -242,7 +162,7 @@ end
 
 #@s.scenario_five
 
-@s.scenario_six
+#@s.scenario_six
 
 @s.autobid
 @s.ranking
