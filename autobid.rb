@@ -134,7 +134,7 @@ class AutoBidService
   end
 
   def print
-    @offers.sort_by{|o| o[:price]}.sort_by{|o| o[:delivery_quantity]}.sort_by{|o| o[:user_updated_at]}.sort_by{|o| o[:status]}.each do |o|
+    @offers.each do |o|
       p "id: #{o[:id]}, price: #{o[:price].to_s}, min_price: #{o[:min_price]}, delivery_quantity: #{o[:delivery_quantity]}, status: #{o[:status]}, user_updated_at: #{o[:user_updated_at].strftime("%-d.%-m.%Y %-l:%M%p")}"
     end
   end
@@ -145,8 +145,22 @@ class AutoBidService
     # @step should be accesible in this method, maybe to use initialize method!?
     @offers.sort_by!{|o| [o[:price], -o[:delivery_quantity], o[:user_updated_at]]}
 
+    kwh_sum = 0
+    inside_contingent = []
+    outside_contingent = []
+    @offers.each do |o|
+      kwh_sum += o[:delivery_quantity]
+      is_inside_contingent = kwh_sum <= @capacity
+
+      if is_inside_contingent
+        o[:status] = "inside_contigent"
+      else
+        o[:status] = "outside_contigent"
+      end
+    end
+
     @offers.reverse.each_with_index do |so,index|
-      return @offers if index == @offers.size - 1 # don't improve the best ranking offer and return array
+      return @offers if index == @offers.size - 1 || so[:status] == "inside_contigent" # don't improve the best ranking offer and return array
       if so[:min_price] <= so[:price] - @step
         so[:price] = so[:price] - @step
         autobid
@@ -159,7 +173,7 @@ class AutoBidService
   end
 
   def ranking
-    @offers = @offers.sort_by{|o| o[:price]}.sort_by{|o| o[:delivery_quantity]}.sort_by{|o| o[:user_updated_at]}
+    @offers.sort_by!{|o| [o[:price], -o[:delivery_quantity], o[:user_updated_at]]}
     kwh_sum = 0
     inside_contingent = []
     outside_contingent = []
@@ -181,11 +195,11 @@ end
 
 @s = AutoBidService.new
 
-@s.scenario_one
+#@s.scenario_one
 
 #@s.scenario_two
 
-#@s.scenario_three
+@s.scenario_three
 
 #@s.scenario_four
 
@@ -194,7 +208,7 @@ end
 #@s.scenario_six
 
 @s.autobid
-@s.ranking
+#@s.ranking
 
 
 
